@@ -1,0 +1,177 @@
+local player = game.Players.LocalPlayer
+
+-- GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "MainGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Frame chính
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 230)
+frame.Position = UDim2.new(0, 20, 0, 20)
+frame.BackgroundColor3 = Color3.new(0, 0, 0)
+frame.BorderSizePixel = 3
+frame.BorderColor3 = Color3.new(1, 0, 0)
+frame.Parent = screenGui
+
+-- Santo Hub góc trên phải
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(0, 100, 0, 20)
+title.Position = UDim2.new(1, -105, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "Santo Hub"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 16
+title.TextXAlignment = Enum.TextXAlignment.Right
+title.Parent = frame
+
+-- Hàm tạo nút
+local function createButton(name, posY)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(1, -20, 0, 30)
+	btn.Position = UDim2.new(0, 10, 0, posY)
+	btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+	btn.TextColor3 = Color3.new(1, 1, 1)
+	btn.Text = name
+	btn.Font = Enum.Font.SourceSansBold
+	btn.TextSize = 18
+	btn.Parent = frame
+	return btn
+end
+
+-- Các nút
+local speedBtn = createButton("Speed", 25)
+local resetSpeedBtn = createButton("Reset Speed", 65)
+local flyBtn = createButton("Fly", 105)
+local autoEBtn = createButton("Auto E", 145)
+local godBtn = createButton("Godmode", 185)
+
+-- SPEED mới
+local defaultSpeed = 16
+local currentSpeed = defaultSpeed
+
+speedBtn.MouseButton1Click:Connect(function()
+	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		currentSpeed += 5
+		humanoid.WalkSpeed = currentSpeed
+		speedBtn.Text = "Speed: " .. tostring(currentSpeed)
+	end
+end)
+
+resetSpeedBtn.MouseButton1Click:Connect(function()
+	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		currentSpeed = defaultSpeed
+		humanoid.WalkSpeed = currentSpeed
+		speedBtn.Text = "Speed"
+	end
+end)
+
+-- FLY
+local flying = false
+local flyVelocity, bodyGyro
+
+local function startFlying()
+	local char = player.Character
+	if not char then return end
+	local root = char:FindFirstChild("HumanoidRootPart")
+	if not root then return end
+
+	bodyGyro = Instance.new("BodyGyro", root)
+	bodyGyro.P = 9e4
+	bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+	bodyGyro.CFrame = root.CFrame
+
+	flyVelocity = Instance.new("BodyVelocity", root)
+	flyVelocity.Velocity = Vector3.zero
+	flyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+
+	game:GetService("RunService").RenderStepped:Connect(function()
+		if flying and root then
+			local dir = workspace.CurrentCamera.CFrame.LookVector
+			flyVelocity.Velocity = dir * 100
+			bodyGyro.CFrame = workspace.CurrentCamera.CFrame
+		end
+	end)
+end
+
+flyBtn.MouseButton1Click:Connect(function()
+	flying = not flying
+	if flying then
+		startFlying()
+		flyBtn.Text = "Fly: ON"
+	else
+		if flyVelocity then flyVelocity:Destroy() end
+		if bodyGyro then bodyGyro:Destroy() end
+		flyBtn.Text = "Fly"
+	end
+end)
+
+-- AUTO E (nhặt item nếu lại gần)
+local autoE = false
+local autoELoop = nil
+
+autoEBtn.MouseButton1Click:Connect(function()
+	autoE = not autoE
+	autoEBtn.Text = autoE and "Auto E: ON" or "Auto E"
+
+	if autoE then
+		autoELoop = task.spawn(function()
+			while autoE do
+				local char = player.Character
+				if char and char:FindFirstChild("HumanoidRootPart") then
+					local root = char.HumanoidRootPart
+
+					for _, item in ipairs(workspace:WaitForChild("Items"):GetChildren()) do
+						if item:IsA("BasePart") and item:IsDescendantOf(workspace) then
+							local dist = (item.Position - root.Position).Magnitude
+							if dist < 10 then
+								-- Tuỳ item xử lý:
+								if item.Name == "Gem" then
+									print("Đã nhặt gem! +10 điểm")
+									item:Destroy()
+								elseif item.Name == "Coin" then
+									item.Parent = player:WaitForChild("Backpack")
+								else
+									item:Destroy()
+								end
+							end
+						end
+					end
+				end
+				task.wait(0.3)
+			end
+		end)
+	else
+		if autoELoop then task.cancel(autoELoop) end
+	end
+end)
+
+-- GODMODE
+local godmode = false
+local godLoop = nil
+
+godBtn.MouseButton1Click:Connect(function()
+	godmode = not godmode
+	godBtn.Text = godmode and "Godmode: ON" or "Godmode"
+
+	if godmode then
+		godLoop = task.spawn(function()
+			while godmode do
+				local char = player.Character
+				if char then
+					local humanoid = char:FindFirstChildOfClass("Humanoid")
+					if humanoid and humanoid.Health < humanoid.MaxHealth then
+						humanoid.Health = humanoid.MaxHealth
+					end
+				end
+				task.wait(0.2)
+			end
+		end)
+	else
+		if godLoop then task.cancel(godLoop) end
+	end
+end)
