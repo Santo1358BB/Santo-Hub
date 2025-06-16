@@ -71,13 +71,7 @@ resetSpeedBtn.MouseButton1Click:Connect(function()
 end)
 
 -- FLY
-flyBtn.MouseButton1Click:Connect(function()
-	flying = not flying
-	if flying then
-		startFlying()
-		flyBtn.Text = "Fly: ON"
-		
-		loadstring("local main = Instance.new("ScreenGui")
+local main = Instance.new("ScreenGui")
 local Frame = Instance.new("Frame")
 local up = Instance.new("TextButton")
 local down = Instance.new("TextButton")
@@ -550,49 +544,6 @@ mini2.MouseButton1Click:Connect(function()
 	mini2.Visible = false
 	main.Frame.BackgroundTransparency = 0 
 	closebutton.Position =  UDim2.new(0, 0, -1, 27)
-end)")()
-	end
-	...
-end)
-
--- AUTO E (nhặt item nếu lại gần)
-local autoE = false
-local autoELoop = nil
-
-autoEBtn.MouseButton1Click:Connect(function()
-	autoE = not autoE
-	autoEBtn.Text = autoE and "Auto E: ON" or "Auto E"
-
-	if autoE then
-		autoELoop = task.spawn(function()
-			while autoE do
-				local char = player.Character
-				if char and char:FindFirstChild("HumanoidRootPart") then
-					local root = char.HumanoidRootPart
-
-					for _, item in ipairs(workspace:WaitForChild("Items"):GetChildren()) do
-						if item:IsA("BasePart") and item:IsDescendantOf(workspace) then
-							local dist = (item.Position - root.Position).Magnitude
-							if dist < 10 then
-								-- Tuỳ item xử lý:
-								if item.Name == "Gem" then
-									print("Đã nhặt gem! +10 điểm")
-									item:Destroy()
-								elseif item.Name == "Coin" then
-									item.Parent = player:WaitForChild("Backpack")
-								else
-									item:Destroy()
-								end
-							end
-						end
-					end
-				end
-				task.wait(0.3)
-			end
-		end)
-	else
-		if autoELoop then task.cancel(autoELoop) end
-	end
 end)
 
 -- GODMODE mới (tạo khiên chắn quái)
