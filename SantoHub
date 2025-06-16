@@ -1,21 +1,20 @@
 local player = game.Players.LocalPlayer
 
--- GUI
+-- Tạo GUI
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "MainGui"
+screenGui.Name = "SantoHubGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
--- Frame chính
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 200, 0, 230)
+frame.Size = UDim2.new(0, 200, 0, 270)
 frame.Position = UDim2.new(0, 20, 0, 20)
 frame.BackgroundColor3 = Color3.new(0, 0, 0)
 frame.BorderSizePixel = 3
 frame.BorderColor3 = Color3.new(1, 0, 0)
 frame.Parent = screenGui
 
--- Santo Hub góc trên phải
+-- Tiêu đề "Santo Hub"
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(0, 100, 0, 20)
 title.Position = UDim2.new(1, -105, 0, 0)
@@ -28,26 +27,49 @@ title.TextXAlignment = Enum.TextXAlignment.Right
 title.Parent = frame
 
 -- Hàm tạo nút
-local function createButton(name, posY)
+local function createButton(text, posY)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(1, -20, 0, 30)
 	btn.Position = UDim2.new(0, 10, 0, posY)
 	btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 	btn.TextColor3 = Color3.new(1, 1, 1)
-	btn.Text = name
+	btn.Text = text
 	btn.Font = Enum.Font.SourceSansBold
 	btn.TextSize = 18
 	btn.Parent = frame
 	return btn
 end
 
--- Các nút
-local speedBtn = createButton("Speed", 25)
-local resetSpeedBtn = createButton("Reset Speed", 65)
-local flyBtn = createButton("Fly", 105)
-local autoEBtn = createButton("Auto E", 145)
-local godBtn = createButton("Godmode", 185)
+-- Nút "Đóng" đầu tiên
+local collapseBtn = createButton("Đóng", 0)
+local speedBtn = createButton("Speed", 35)
+local resetSpeedBtn = createButton("Reset Speed", 75)
+local flyBtn = createButton("Fly", 115)
+local autoEBtn = createButton("Auto E", 155)
+local godBtn = createButton("Godmode", 195)
 
+-- Biến kiểm soát UI
+local isOpen = true
+
+local function toggleUI()
+	isOpen = not isOpen
+	speedBtn.Visible = isOpen
+	resetSpeedBtn.Visible = isOpen
+	flyBtn.Visible = isOpen
+	autoEBtn.Visible = isOpen
+	godBtn.Visible = isOpen
+	title.Visible = isOpen
+
+	if isOpen then
+		frame.Size = UDim2.new(0, 200, 0, 270)
+		collapseBtn.Text = "Đóng"
+	else
+		frame.Size = UDim2.new(0, 100, 0, 40)
+		collapseBtn.Text = "Mở"
+	end
+end
+
+collapseBtn.MouseButton1Click:Connect(toggleUI)
 -- SPEED mới
 local defaultSpeed = 16
 local currentSpeed = defaultSpeed
