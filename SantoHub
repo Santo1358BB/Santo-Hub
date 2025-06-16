@@ -1,20 +1,21 @@
--- Santo Hub - Full GUI with Speed, Fly, Auto E, Godmode (Hitbox)
 local player = game.Players.LocalPlayer
 
--- GUI setup
+-- GUI
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "MainGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
+-- Frame chính
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 200, 0, 270)
+frame.Size = UDim2.new(0, 200, 0, 230)
 frame.Position = UDim2.new(0, 20, 0, 20)
 frame.BackgroundColor3 = Color3.new(0, 0, 0)
 frame.BorderSizePixel = 3
 frame.BorderColor3 = Color3.new(1, 0, 0)
 frame.Parent = screenGui
 
+-- Santo Hub góc trên phải
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(0, 100, 0, 20)
 title.Position = UDim2.new(1, -105, 0, 0)
@@ -26,6 +27,7 @@ title.TextSize = 16
 title.TextXAlignment = Enum.TextXAlignment.Right
 title.Parent = frame
 
+-- Hàm tạo nút
 local function createButton(name, posY)
 	local btn = Instance.new("TextButton")
 	btn.Size = UDim2.new(1, -20, 0, 30)
@@ -39,13 +41,14 @@ local function createButton(name, posY)
 	return btn
 end
 
+-- Các nút
 local speedBtn = createButton("Speed", 25)
 local resetSpeedBtn = createButton("Reset Speed", 65)
 local flyBtn = createButton("Fly", 105)
 local autoEBtn = createButton("Auto E", 145)
 local godBtn = createButton("Godmode", 185)
 
--- SPEED
+-- SPEED mới
 local defaultSpeed = 16
 local currentSpeed = defaultSpeed
 
@@ -107,7 +110,7 @@ flyBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- AUTO E
+-- AUTO E (nhặt item nếu lại gần)
 local autoE = false
 local autoELoop = nil
 
@@ -123,9 +126,10 @@ autoEBtn.MouseButton1Click:Connect(function()
 					local root = char.HumanoidRootPart
 
 					for _, item in ipairs(workspace:WaitForChild("Items"):GetChildren()) do
-						if item:IsA("BasePart") then
+						if item:IsA("BasePart") and item:IsDescendantOf(workspace) then
 							local dist = (item.Position - root.Position).Magnitude
 							if dist < 10 then
+								-- Tuỳ item xử lý:
 								if item.Name == "Gem" then
 									print("Đã nhặt gem! +10 điểm")
 									item:Destroy()
@@ -137,6 +141,7 @@ autoEBtn.MouseButton1Click:Connect(function()
 							end
 						end
 					end
+				end
 				task.wait(0.3)
 			end
 		end)
@@ -145,7 +150,7 @@ autoEBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
--- GODMODE (Tạo hitbox chắn quái vật)
+-- GODMODE mới (tạo khiên chắn quái)
 local godmode = false
 local hitbox = nil
 
