@@ -45,7 +45,7 @@ local collapseBtn = createButton("Đóng", 0)
 local speedBtn = createButton("Speed", 35)
 local resetSpeedBtn = createButton("Reset Speed", 75)
 local flyBtn = createButton("Fly", 115)
-local autoEBtn = createButton("Auto Pick Up", 155)
+local autoPickupBtn = createButton("Auto Pick Up", 155)
 local godBtn = createButton("Godmode", 195)
 local autoEBtn = createButton("Auto E", 235)
 -- Biến kiểm soát UI
@@ -56,7 +56,8 @@ local function toggleUI()
 	speedBtn.Visible = isOpen
 	resetSpeedBtn.Visible = isOpen
 	flyBtn.Visible = isOpen
-	autoEBtn.Visible = isOpen
+	autoPickUpBtn.Visible = isOpen
+        autoEBtn.Visible = isOpen
 	godBtn.Visible = isOpen
 	title.Visible = isOpen
 
@@ -159,7 +160,7 @@ autoEBtn.MouseButton1Click:Connect(function()
 end)
 
 
--- FLY
+ -- FLY
 local main = Instance.new("ScreenGui")
 local Frame = Instance.new("Frame")
 local up = Instance.new("TextButton")
