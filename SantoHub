@@ -45,7 +45,8 @@ local collapseBtn = createButton("Đóng", 0)
 local speedBtn = createButton("Speed", 35)
 local resetSpeedBtn = createButton("Reset Speed", 75)
 local flyBtn = createButton("Fly", 115)
-local autoEBtn = createButton("Auto E", 155)
+local autoPickUpBtn = createButton("Auto Pick Up", 155)
+local autoEBtn = createButton("Auto E", 195)
 local godBtn = createButton("Godmode", 195)
 
 -- Biến kiểm soát UI
@@ -91,6 +92,73 @@ resetSpeedBtn.MouseButton1Click:Connect(function()
 		speedBtn.Text = "Speed"
 	end
 end)
+ -- Auto pick up
+local autoPickUpActive = false
+local autoPickUpThread = nil
+
+autoPickUpBtn.MouseButton1Click:Connect(function()
+	autoPickUpActive = not autoPickUpActive
+	autoPickUpBtn.Text = autoPickUpActive and "Auto Pick Up: ON" or "Auto Pick Up"
+
+	if autoPickUpActive then
+		autoPickUpThread = task.spawn(function()
+			while autoPickUpActive do
+				local character = player.Character
+				if character then
+					local root = character:FindFirstChild("HumanoidRootPart")
+					if root then
+						for _, prompt in pairs(workspace:GetDescendants()) do
+							if prompt:IsA("ProximityPrompt") and prompt.Enabled then
+								local parentPart = prompt.Parent:IsA("BasePart") and prompt.Parent or nil
+								if parentPart then
+									local distance = (parentPart.Position - root.Position).Magnitude
+									if distance <= prompt.MaxActivationDistance then
+										-- Giữ nhặt cho đến khi prompt biến mất hoặc tắt
+										while autoPickUpActive and prompt.Enabled and prompt.Parent do
+											fireproximityprompt(prompt)
+											task.wait(0.1)
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+				task.wait(0.1)
+			end
+		end)
+	else
+		if autoPickUpThread then
+			task.cancel(autoPickUpThread)
+			autoPickUpThread = nil
+		end
+	end
+end)
+ -- Auto E
+local autoEActive = false
+local autoEThread = nil
+
+autoEBtn.MouseButton1Click:Connect(function()
+	autoEActive = not autoEActive
+	autoEBtn.Text = autoEActive and "Auto E: ON" or "Auto E"
+
+	if autoEActive then
+		autoEThread = task.spawn(function()
+			local vim = game:GetService("VirtualInputManager")
+			while autoEActive do
+				vim:SendKeyEvent(true, Enum.KeyCode.E, false, nil)
+				vim:SendKeyEvent(false, Enum.KeyCode.E, false, nil)
+				task.wait(0.1) -- nhấn E mỗi 0.1 giây
+			end
+		end)
+	else
+		if autoEThread then
+			task.cancel(autoEThread)
+			autoEThread = nil
+		end
+	end
+end)
+
 
 -- FLY
 local main = Instance.new("ScreenGui")
@@ -567,41 +635,58 @@ mini2.MouseButton1Click:Connect(function()
 	main.Frame.BackgroundTransparency = 0 
 	closebutton.Position =  UDim2.new(0, 0, -1, 27)
 end)
+-- GODMODE
+local godModeActive = false
+local godModeTouchConns = {}
+local godModeHealthConn = nil
+local godModeDiedConn = nil
 
--- GODMODE mới (tạo khiên chắn quái)
-local godmode = false
-local hitbox = nil
+local function setGodmode(enabled)
+	godModeActive = enabled
+	godBtn.Text = enabled and "Godmode: ON" or "Godmode"
 
-godBtn.MouseButton1Click:Connect(function()
-	godmode = not godmode
-	godBtn.Text = godmode and "Godmode: ON" or "Godmode"
+	-- Dọn kết nối cũ
+	for _, conn in pairs(godModeTouchConns) do
+		conn:Disconnect()
+	end
+	table.clear(godModeTouchConns)
 
-	if godmode then
-		local char = player.Character
-		if char and char:FindFirstChild("HumanoidRootPart") then
-			local root = char.HumanoidRootPart
+	if godModeHealthConn then godModeHealthConn:Disconnect() end
+	if godModeDiedConn then godModeDiedConn:Disconnect() end
+	godModeHealthConn, godModeDiedConn = nil, nil
 
-			hitbox = Instance.new("Part")
-			hitbox.Size = Vector3.new(30, 20, 30)
-			hitbox.Anchored = false
-			hitbox.CanCollide = true
-			hitbox.Transparency = 1
-			hitbox.Massless = true
-			hitbox.Name = "GodHitbox"
-			hitbox.Parent = workspace
+	if enabled then
+		local character = player.Character or player.CharacterAdded:Wait()
+		local humanoid = character:WaitForChild("Humanoid")
+		local root = character:WaitForChild("HumanoidRootPart")
 
-			local weld = Instance.new("WeldConstraint")
-			weld.Part0 = hitbox
-			weld.Part1 = root
-			weld.Parent = hitbox
+		-- Không mất máu
+		godModeHealthConn = humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+			if humanoid.Health < humanoid.MaxHealth then
+				humanoid.Health = humanoid.MaxHealth
+			end
+		end)
 
-			hitbox.CFrame = root.CFrame
-		end
-	else
-		if hitbox then
-			hitbox:Destroy()
-			hitbox = nil
+		-- Không chết
+		godModeDiedConn = humanoid.Died:Connect(function()
+			humanoid.Health = humanoid.MaxHealth
+		end)
+
+		-- Không bị chạm gây tác động
+		for _, part in pairs(workspace:GetDescendants()) do
+			if part:IsA("BasePart") then
+				local conn = part.Touched:Connect(function(hit)
+					if hit:IsDescendantOf(character) then
+						-- Không làm gì cả → miễn nhiễm
+					end
+				end)
+				table.insert(godModeTouchConns, conn)
+			end
 		end
 	end
-end)
+end
 
+-- Bấm nút để bật/tắt godmode
+godBtn.MouseButton1Click:Connect(function()
+	setGodmode(not godModeActive)
+end)
