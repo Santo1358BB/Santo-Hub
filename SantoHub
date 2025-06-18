@@ -41,12 +41,13 @@ local function createButton(text, posY)
 end
 
 -- Nút "Đóng" đầu tiên
+local collapseBtn = createButton("Đóng", 0)
 local speedBtn = createButton("Speed", 35)
 local resetSpeedBtn = createButton("Reset Speed", 75)
 local flyBtn = createButton("Fly", 115)
 local autoEBtn = createButton("Auto Pick Up", 155)
 local godBtn = createButton("Godmode", 195)
-local collapseBtn = createButton("Đóng", 275)
+local autoEBtn = createButton("Auto E", 235)
 -- Biến kiểm soát UI
 local isOpen = true
 
